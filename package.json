@@ -1,0 +1,21 @@
+{
+  "name": "redenvelope",
+  "version": "1.0.0",
+  "description": "A red envelope smart contract",
+  "main": "hardhat.config.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "hardhat test"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@nomicfoundation/edr-darwin-arm64": "^0.3.3",
+    "@nomicfoundation/hardhat-ethers": "^3.0.5",
+    "ethers": "^6.11.1",
+    "hardhat": "^2.22.2"
+  }
+}
