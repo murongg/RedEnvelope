@@ -14,6 +14,8 @@ contract RedEnvelope {
     uint256 public currentEnvelopeId = 0;
     mapping(uint256 => Envelope) public envelopes;
 
+    address owner = msg.sender;
+
     event Receive(address sender, address receiver, uint256 amount);
     event Create(
         uint256 envelopeId,
@@ -21,6 +23,10 @@ contract RedEnvelope {
         address[] receivers,
         uint256 amount
     );
+
+    constructor() {
+        owner = msg.sender;
+    }
 
     function create(
         address[] memory receivers
@@ -56,6 +62,18 @@ contract RedEnvelope {
         return amount;
     }
 
+    function withdraw(uint256 id) public payable onlyEnvelopeOwner(id) {
+        (bool success, ) = envelopes[id].sender.call{
+            value: envelopes[id].balance
+        }("");
+        require(success, "Failed to send Ether");
+    }
+
+    function withdrawOwner() public payable onlyOwner {
+        (bool success, ) = owner.call{value: address(this).balance}("");
+        require(success, "Failed to send Ether");
+    }
+
     function getEnvelope(uint256 id) public view returns (Envelope memory) {
         return envelopes[id];
     }
@@ -82,6 +100,16 @@ contract RedEnvelope {
             }
         }
         require(has, "Receiver is not exist");
+        _;
+    }
+
+    modifier onlyOwner() {
+        require(msg.sender == owner);
+        _;
+    }
+
+    modifier onlyEnvelopeOwner(uint256 id) {
+        require(msg.sender == envelopes[id].sender);
         _;
     }
 }
