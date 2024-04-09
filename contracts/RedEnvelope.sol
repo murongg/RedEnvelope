@@ -52,7 +52,7 @@ contract RedEnvelope {
         envelopes[id].balance = envelope.balance - amount;
         (bool success, ) = msg.sender.call{value: amount}("");
         require(success, "Failed to send Ether");
-        emit Receive(envelope.sender, envelope.receivers[0], amount);
+        emit Receive(envelope.sender, envelope.sender, amount);
         return amount;
     }
 
