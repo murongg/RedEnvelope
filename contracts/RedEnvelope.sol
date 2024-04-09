@@ -23,6 +23,8 @@ contract RedEnvelope {
         address[] receivers,
         uint256 amount
     );
+    event Withdraw(uint256 id, address sender, uint256 amount);
+    event WithdrawOwner(uint256 amount);
 
     constructor() {
         owner = msg.sender;
@@ -67,11 +69,16 @@ contract RedEnvelope {
             value: envelopes[id].balance
         }("");
         require(success, "Failed to send Ether");
+        emit Withdraw(id, envelopes[id].sender, envelopes[id].balance);
+        envelopes[id].balance = 0;
     }
 
     function withdrawOwner() public payable onlyOwner {
-        (bool success, ) = owner.call{value: address(this).balance}("");
+        uint256 balance = address(this).balance;
+        require(balance > 0, "No balance");
+        (bool success, ) = owner.call{value: balance}("");
         require(success, "Failed to send Ether");
+        emit WithdrawOwner(balance);
     }
 
     function getEnvelope(uint256 id) public view returns (Envelope memory) {
