@@ -11,8 +11,14 @@ contract RedEnvelope {
         uint256 balance;
     }
 
+    struct Record {
+        address receiver;
+        uint256 amount;
+    }
+
     uint256 public currentEnvelopeId = 0;
     mapping(uint256 => Envelope) public envelopes;
+    mapping(uint256 => Record[]) public records;
 
     address owner = msg.sender;
 
@@ -32,7 +38,7 @@ contract RedEnvelope {
 
     function create(
         address[] memory receivers
-    ) public payable checkBalance(msg.value, msg.sender) returns (uint256) {
+    ) public payable returns (uint256) {
         currentEnvelopeId++;
         envelopes[currentEnvelopeId] = Envelope(
             msg.sender,
@@ -60,7 +66,8 @@ contract RedEnvelope {
         envelopes[id].balance = envelope.balance - amount;
         (bool success, ) = msg.sender.call{value: amount}("");
         require(success, "Failed to send Ether");
-        emit Receive(envelope.sender, envelope.sender, amount);
+        records[id].push(Record(msg.sender, amount));
+        emit Receive(envelope.sender, msg.sender, amount);
         return amount;
     }
 
