@@ -7,6 +7,8 @@
     "test": "test"
   },
   "scripts": {
+    "deploy": "hardhat run scripts/deploy.js --netwok sepolia",
+    "verify": "hardhat verify --network sepolia",
     "test": "hardhat test"
   },
   "keywords": [],
