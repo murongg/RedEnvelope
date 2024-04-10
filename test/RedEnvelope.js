@@ -38,6 +38,13 @@ describe("RedEnvelope", function () {
     console.log('amount', ethers.getBigInt(value) / BigInt(receivers.length))
     console.log('receiver new', await receiver.provider.getBalance(receiver.address))
 
+    const record = await redEnvelope.getRecord(currentEnvelopeId)
+    console.log(record)
+
+    console.log('owner balance', await ethers.provider.getBalance(owner.address))
+    const withdrawOwnerTx = await contractWithSigner.withdrawOwner();
+    console.log('owner balance', await ethers.provider.getBalance(owner.address))
+
     // console.log(grabTx)
     // const balance = await receiver.provider.getBalance(receiver.address);
     // console.log(balance)

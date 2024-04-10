@@ -92,6 +92,10 @@ contract RedEnvelope {
         return envelopes[id];
     }
 
+    function getRecord(uint256 id) public view returns (Record[] memory) {
+        return records[id];
+    }
+
     modifier checkBalance(uint256 amount, address sender) {
         require(amount <= sender.balance, "Not enough balance");
         _;
