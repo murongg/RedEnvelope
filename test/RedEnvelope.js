@@ -16,7 +16,8 @@ describe("RedEnvelope", function () {
 
   it("create & grab", async function () {
     const value = ethers.parseEther("0.1")
-    const tx = await contractWithSigner.create(receivers, { value });
+    console.log(value.toString())
+    const tx = await contractWithSigner.create(receivers, 0, { value });
     await tx.wait();
     // parse data
     const currentEnvelopeId = await redEnvelope.currentEnvelopeId();

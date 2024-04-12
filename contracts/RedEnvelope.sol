@@ -9,6 +9,7 @@ contract RedEnvelope {
         address[] receivers;
         uint256 amount;
         uint256 balance;
+        EnvelopeType envelopeType;
     }
 
     struct Record {
@@ -16,9 +17,16 @@ contract RedEnvelope {
         uint256 amount;
     }
 
+    enum EnvelopeType {
+        Average,
+        Lucky
+    }
+
     uint256 public currentEnvelopeId = 0;
     mapping(uint256 => Envelope) public envelopes;
     mapping(uint256 => Record[]) public records;
+
+    uint256 public constant ENVELOPE_LUCKY_MIN = 1 ether / 1000;
 
     address owner = msg.sender;
 
@@ -27,7 +35,8 @@ contract RedEnvelope {
         uint256 envelopeId,
         address sender,
         address[] receivers,
-        uint256 amount
+        uint256 amount,
+        EnvelopeType envelopeType
     );
     event Withdraw(uint256 id, address sender, uint256 amount);
     event WithdrawOwner(uint256 amount);
@@ -37,16 +46,24 @@ contract RedEnvelope {
     }
 
     function create(
-        address[] memory receivers
+        address[] memory receivers,
+        EnvelopeType envelopeType
     ) public payable returns (uint256) {
         currentEnvelopeId++;
         envelopes[currentEnvelopeId] = Envelope(
             msg.sender,
             receivers,
             msg.value,
-            msg.value
+            msg.value,
+            envelopeType
         );
-        emit Create(currentEnvelopeId, msg.sender, receivers, msg.value);
+        emit Create(
+            currentEnvelopeId,
+            msg.sender,
+            receivers,
+            msg.value,
+            envelopeType
+        );
         return currentEnvelopeId;
     }
 
@@ -60,8 +77,9 @@ contract RedEnvelope {
     {
         Envelope memory envelope = envelopes[id];
         require(envelope.balance > 0, "No balance");
-        uint256 len = envelope.receivers.length;
-        uint256 amount = envelope.amount / len;
+        uint256 amount = envelope.envelopeType == EnvelopeType.Average
+            ? _grabByAverage(id)
+            : _grabByLucky(id);
         require(amount <= envelope.balance, "No balance");
         envelopes[id].balance = envelope.balance - amount;
         (bool success, ) = msg.sender.call{value: amount}("");
@@ -69,6 +87,43 @@ contract RedEnvelope {
         records[id].push(Record(msg.sender, amount));
         emit Receive(envelope.sender, msg.sender, amount);
         return amount;
+    }
+
+    function _grabByAverage(uint256 id) private view returns (uint256) {
+        Envelope memory envelope = envelopes[id];
+        uint256 len = envelope.receivers.length;
+        uint256 amount = envelope.amount / len;
+        return amount;
+    }
+
+    function _grabByLucky(uint256 id) private view returns (uint256) {
+        Envelope memory envelope = envelopes[id];
+        uint256 recordLen = records[id].length;
+        uint256 unAssignLen = envelope.receivers.length - recordLen;
+        if (unAssignLen == 0) {
+            return 0;
+        } else if (unAssignLen == 1) {
+            return envelope.balance;
+        } else {
+            uint256 safeAmount = ENVELOPE_LUCKY_MIN * (unAssignLen - 1);
+            uint256 luckyAmount = _getRandomAmount(
+                envelope.balance - safeAmount
+            );
+            return luckyAmount;
+        }
+    }
+
+    function _getRandomAmount(uint256 _max) private view returns (uint256) {
+        return
+            uint256(
+                keccak256(
+                    abi.encodePacked(
+                        block.timestamp,
+                        msg.sender,
+                        ENVELOPE_LUCKY_MIN
+                    )
+                )
+            ) % _max;
     }
 
     function withdraw(uint256 id) public payable onlyEnvelopeOwner(id) {
