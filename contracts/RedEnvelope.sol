@@ -1,27 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
+import "./IRedEnvelope.sol";
+
 // Uncomment this line to use console.log
 // import "hardhat/console.sol";
-contract RedEnvelope {
-    struct Envelope {
-        address sender;
-        address[] receivers;
-        uint256 amount;
-        uint256 balance;
-        EnvelopeType envelopeType;
-    }
-
-    struct Record {
-        address receiver;
-        uint256 amount;
-    }
-
-    enum EnvelopeType {
-        Average,
-        Lucky
-    }
-
+contract RedEnvelope is IRedEnvelope {
     uint256 public currentEnvelopeId = 0;
     mapping(uint256 => Envelope) public envelopes;
     mapping(uint256 => Record[]) public records;
@@ -29,17 +13,6 @@ contract RedEnvelope {
     uint256 public constant ENVELOPE_LUCKY_MIN = 1 ether / 1000;
 
     address owner = msg.sender;
-
-    event Receive(address sender, address receiver, uint256 amount);
-    event Create(
-        uint256 envelopeId,
-        address sender,
-        address[] receivers,
-        uint256 amount,
-        EnvelopeType envelopeType
-    );
-    event Withdraw(uint256 id, address sender, uint256 amount);
-    event WithdrawOwner(uint256 amount);
 
     constructor() {
         owner = msg.sender;
