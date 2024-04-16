@@ -8,12 +8,12 @@ const hre = require("hardhat");
 
 async function main() {
 
-  const redEnvelope = await hre.ethers.deployContract("RedEnvelope");
+  const redEnvelope = await hre.ethers.getContractFactory("RedEnvelope");
 
-  await redEnvelope.waitForDeployment();
-
+  const address = await redEnvelope.deploy();
+  await address.waitForDeployment()
   console.log(
-    `deployed to ${redEnvelope.target}`
+    `deployed to ${address.target}`
   );
 }
 
